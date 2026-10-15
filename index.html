@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nutrialize</title>
+
+  <!-- Inter font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <a href="#" class="logo">Nutri<span>alize</span></a>
+    <nav>
+      <a href="#" id="home-link">Home</a>
+      <a href="#" id="favorites-link">Favorites</a>
+      <a href="#" id="planner-link">Meal plan</a>
+      <span class="nav-user" id="nav-user" hidden></span>
+      <button type="button" id="auth-btn" class="nav-btn">Log in</button>
+    </nav>
+  </header>
+
+  <!-- Hero section (home view) -->
+  <main class="hero" id="hero">
+    <div class="hero-content">
+      <h1>Healthy meals from what's already in your fridge.</h1>
+      <p class="hero-subtitle">Search one ingredient or a dish. See its nutrition and ready-to-cook recipes side by side.</p>
+
+      <form class="search-form" id="hero-search-form" novalidate>
+        <input
+          type="text"
+          id="hero-search-input"
+          class="search-input"
+          placeholder="e.g. chicken"
+          aria-label="Ingredient or dish"
+          autocomplete="off"
+          maxlength="50"
+        >
+        <button type="submit">Search</button>
+      </form>
+      <p class="validation-error" id="hero-validation-error" role="alert"></p>
+      <div class="search-options" data-options></div>
+    </div>
+  </main>
+
+  <!-- Recent searches + recommendations (home view) -->
+  <section class="recommended is-empty" id="recommended" style="display: none;">
+    <div class="recent" id="recent-searches" hidden>
+      <span>Recent searches:</span>
+      <div class="chip-row" id="recent-chips"></div>
+    </div>
+    <div id="recommended-body" hidden>
+      <h3>Recommended for you</h3>
+      <p class="recommended-sub" id="recommended-sub"></p>
+      <div class="recipe-grid" id="recommended-grid"></div>
+      <p class="notice" id="recommended-msg" hidden></p>
+    </div>
+  </section>
+
+  <!-- Results Section -->
+  <section class="results" id="results" style="display: none;">
+    <h2>Healthy meals from what's already in your fridge.</h2>
+    <p class="results-subtitle">Search one ingredient or a dish. See its nutrition and ready-to-cook recipes side by side.</p>
+
+    <form class="search-form" id="results-search-form" novalidate>
+      <input
+        type="text"
+        id="results-search-input"
+        class="search-input"
+        placeholder="e.g. chicken"
+        aria-label="Ingredient or dish"
+        autocomplete="off"
+        maxlength="50"
+      >
+      <button type="submit">Search</button>
+    </form>
+    <p class="validation-error" id="results-validation-error" role="alert"></p>
+    <div class="search-options" data-options></div>
+
+    <!-- Loading State -->
+    <div class="loading-state" id="loading-state" style="display: none;">
+      <div class="spinner"></div>
+      <p>Searching for recipes and nutrition data...</p>
+    </div>
+
+    <!-- Error State Container -->
+    <div class="error-container" id="error-container" style="display: none;">
+      <div class="error-message" id="error-message"></div>
+    </div>
+
+    <!-- No Results State -->
+    <div class="no-results-state" id="no-results-state" style="display: none;">
+      <p>No recipes or nutrition data found for "<span id="no-results-ingredient"></span>"</p>
+      <p class="no-results-suggestion">Try searching for a different ingredient or dish.</p>
+    </div>
+
+    <!-- Results Container -->
+    <div class="results-container" id="results-container" style="display: none;">
+      <!-- Food Facts Section -->
+      <div class="food-facts">
+        <h3>Food Facts</h3>
+        <div class="nutrition-box" id="nutrition-box">
+          <div class="product-info" id="nutrition-product" style="display: none;">
+            <img class="product-image" id="product-image" alt="" style="display: none;">
+            <div class="product-text">
+              <h4 id="product-name"></h4>
+              <p class="product-code" id="product-code"></p>
+            </div>
+          </div>
+
+          <div class="diet-badges" id="diet-badges" hidden></div>
+
+          <p class="nutrition-label" id="nutrition-label">per 100g</p>
+          <ul id="nutrition-list">
+            <!-- Populated by JavaScript -->
+          </ul>
+
+          <div class="nutrition-extra" id="nutrition-extra" hidden>
+            <h6>Allergens</h6>
+            <div class="allergen-list" id="allergen-list"></div>
+            <details id="ingredients-details">
+              <summary>Ingredients</summary>
+              <p id="ingredients-text"></p>
+            </details>
+          </div>
+
+          <p class="notice" id="nutrition-message" style="display: none;"></p>
+          <p class="nutrition-source" id="nutrition-source">Data from Open Food Facts API</p>
+        </div>
+      </div>
+
+      <!-- What to Cook Section -->
+      <div class="what-to-cook">
+        <h3>What to cook</h3>
+        <div id="recipes-container">
+          <!-- Recipe cards populated by JavaScript -->
+        </div>
+        <p class="notice" id="recipes-message" style="display: none;"></p>
+        <p class="recipes-source">Data from TheMealDB API</p>
+      </div>
+    </div>
+
+    <div class="api-info" id="api-info" style="display: none;">
+      <p><strong>Knowing the numbers is easy. Turning them into a meal is the hard part.</strong></p>
+      <div class="api-cards">
+        <div class="api-card api-green">
+          <h4>Open Food Facts API</h4>
+          <p>Tells you what's in your food</p>
+        </div>
+        <div class="api-card api-red">
+          <h4>The MealDB API</h4>
+          <p>Tells you what to cook</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Favorites view -->
+  <section class="page-section" id="favorites" style="display: none;">
+    <h2>Your favorite recipes</h2>
+    <p class="results-subtitle">Recipes you saved with the heart button.</p>
+    <div class="recipe-grid" id="favorites-grid"></div>
+    <p class="notice" id="favorites-empty" hidden>No favorites yet. Search for a recipe and tap the heart (♡) to save it.</p>
+  </section>
+
+  <!-- Weekly meal planner view -->
+  <section class="page-section" id="planner" style="display: none;">
+    <h2>Weekly meal plan</h2>
+    <p class="results-subtitle">Assign your saved favorites to each day of the week.</p>
+    <p class="plan-summary" id="plan-summary"></p>
+    <div class="planner-actions" id="planner-actions">
+      <button type="button" class="primary-btn secondary" id="plan-autofill">Auto-fill empty days</button>
+      <button type="button" class="primary-btn secondary" id="plan-clear">Clear week</button>
+    </div>
+    <div class="plan-grid" id="plan-grid"></div>
+    <p class="notice" id="planner-empty" hidden>Save some favorites first, then come back to plan your week.</p>
+  </section>
+
+  <!-- Login / Sign-up dialog (demo accounts stored in localStorage) -->
+  <dialog id="auth-dialog" class="auth-dialog" aria-labelledby="auth-title">
+    <form id="auth-form" novalidate>
+      <h3 id="auth-title">Create your account</h3>
+      <p class="auth-message" id="auth-message" hidden></p>
+      <input type="text" id="auth-name" placeholder="Name" autocomplete="name" maxlength="40">
+      <input type="email" id="auth-email" placeholder="Email" autocomplete="email" maxlength="80">
+      <input type="password" id="auth-password" placeholder="Password (min. 6 characters)" autocomplete="current-password" maxlength="64">
+      <p class="validation-error" id="auth-error" role="alert"></p>
+      <button type="submit" class="primary-btn" id="auth-submit">Sign up</button>
+      <button type="button" id="auth-toggle" class="link-btn">Already have an account? Log in</button>
+      <button type="button" id="auth-close" class="link-btn">Cancel</button>
+      <p class="demo-note">Prototype only: accounts are stored in this browser. The final version uses Auth.js + PostgreSQL.</p>
+    </form>
+  </dialog>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div>
+      <h2>Nutrialize</h2>
+      <p>Healthy meals for busy students</p>
+    </div>
+    <nav>
+      <a href="#" id="footer-home">Home</a>
+      <a href="#" id="footer-favorites">Favorites</a>
+      <a href="#" id="footer-planner">Meal plan</a>
+    </nav>
+  </footer>
+
+  <script>
+    // ============================================
+    // API CONFIGURATION
+    // ============================================
+    const API_CONFIG = {
+      themealdb: {
+        // Free test key "1" goes directly in the URL path (no bearer token / OAuth)
+        baseURL: 'https://www.themealdb.com/api/json/v1/1',
+        endpoints: {
+          filterBy: '/filter.php',   // GET ?i=chicken_breast  or  ?c=Vegan
+          searchByName: '/search.php', // GET ?s=arrabiata
+          lookupById: '/lookup.php'  // GET ?i=52940
+        },
+        maxRecipes: 6
+      },
+      openFoodFacts: {
+        baseURL: 'https://world.openfoodfacts.org',
+        // Free-text search (the v2 search endpoint only filters by exact tags)
+        searchPath: '/cgi/search.pl',
+        fields: 'code,product_name,product_name_en,image_url,nutriments,allergens_tags,ingredients_text,ingredients_text_en',
+        pageSize: 10,
+        // Recommended format: AppName/Version (ContactEmail)
+        userAgent: 'Nutrialize/1.0 (your-email@example.com)',
+        // Browsers don't reliably allow setting User-Agent in fetch(), and a custom
+        // header can trigger a CORS preflight. Keep false for browser use; send the
+        // header from the Next.js server layer in the final version.
+        sendUserAgent: false
+      }
+    };
+
+    // Input Validation Configuration
+    const VALIDATION_CONFIG = { minCharacters: 2, maxCharacters: 50 };
+
+    // Rate Limiting Configuration
+    const RATE_LIMIT_CONFIG = {
+      openFoodFacts: {
+        searchLimit: 10, // search requests per minute per IP
+        resetTime: 60000
+      }
+    };
+
+    // Cache to avoid repeat requests (helps stay under the Open Food Facts limit)
+    const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+    const nutritionCache = new Map();
+    const recipeCache = new Map();
+    const dishCache = new Map();
+    const categoryCache = new Map();
+    const mealDetailsCache = new Map();
+    const offRequestLog = [];
+
+    // Nutrients to display (Open Food Facts `nutriments` keys)
+    const NUTRIENTS_TO_DISPLAY = [
+      { key: 'proteins_100g', label: 'Protein', unit: 'g' },
+      { key: 'carbohydrates_100g', label: 'Carbohydrates', unit: 'g' },
+      { key: 'fat_100g', label: 'Fat', unit: 'g' },
+      { key: 'sugars_100g', label: 'Sugars', unit: 'g' },
+      { key: 'fiber_100g', label: 'Fiber', unit: 'g' }
+    ];
+
+    // Dietary preferences -------------------------------------------------
+    // Recipe-based: checked against TheMealDB categories (Vegetarian / Vegan)
+    // Nutrition-based: checked against the Open Food Facts values (per 100g)
+    const DIET_OPTIONS = [
+      { id: 'vegetarian', label: 'Vegetarian' },
+      { id: 'vegan', label: 'Vegan' },
+      { id: 'high-protein', label: 'High-protein' },
+      { id: 'low-calorie', label: 'Low calorie' },
+      { id: 'diabetic-friendly', label: 'Diabetic-friendly' }
+    ];
+
+    const DIET_RULES = {
+      'high-protein':      { label: 'High-protein',      hint: '≥ 15 g protein',  test: n => n.protein === null ? null : n.protein >= 15 },
+      'low-calorie':       { label: 'Low calorie',       hint: '≤ 150 kcal',      test: n => n.kcal === null ? null : n.kcal <= 150 },
+      'diabetic-friendly': { label: 'Diabetic-friendly', hint: '≤ 5 g sugars',    test: n => n.sugars === null ? null : n.sugars <= 5 }
+    };
+
+    // Health goals map onto the nutrition rules above
+    const GOALS = [
+      { id: '', label: 'No goal', diets: [] },
+      { id: 'lose-weight', label: 'Lose weight', diets: ['low-calorie'] },
+      { id: 'build-muscle', label: 'Build muscle', diets: ['high-protein'] },
+      { id: 'maintain', label: 'Maintain', diets: [] }
+    ];
+
+    const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+    // ============================================
+    // STATE + STORAGE (stand-in for PostgreSQL)
+    // ============================================
+    const state = {
+      user: null,            // { name, email }
+      diets: new Set(),
+      goal: '',
+      mode: 'ingredient'     // 'ingredient' | 'dish'
+    };
+
+    const store = {
+      get(key, fallback) {
+        try {
+          const raw = localStorage.getItem(key);
+          return raw ? JSON.parse(raw) : fallback;
+        } catch (e) { return fallback; }
+      },
+      set(key, value) {
+        try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* storage unavailable */ }
+      }
+    };
+
+    function dataKey() {
+      return 'nutrialize:data:' + (state.user ? state.user.email : 'guest');
+    }
+
+    function getData() {
+      const d = store.get(dataKey(), {});
+      return {
+        favorites: Array.isArray(d.favorites) ? d.favorites : [],
+        history: Array.isArray(d.history) ? d.history : [],
+        plan: d.plan && typeof d.plan === 'object' ? d.plan : {},
+        prefs: d.prefs || { diets: [], goal: '', mode: 'ingredient' }
+      };
+    }
+
+    function saveData(d) { store.set(dataKey(), d); }
+
+    function loadPrefs() {
+      const { prefs } = getData();
+      state.diets = new Set((prefs.diets || []).filter(id => DIET_OPTIONS.some(o => o.id === id)));
+      state.goal = GOALS.some(g => g.id === prefs.goal) ? prefs.goal : '';
+      state.mode = prefs.mode === 'dish' ? 'dish' : 'ingredient';
+    }
+
+    function savePrefs() {
+      const d = getData();
+      d.prefs = { diets: [...state.diets], goal: state.goal, mode: state.mode };
+      saveData(d);
+    }
+
+    // ============================================
+    // DOM ELEMENTS
+    // ============================================
+    const $ = id => document.getElementById(id);
+
+    const heroSection = $('hero');
+    const recommendedSection = $('recommended');
+    const resultsSection = $('results');
+    const favoritesSection = $('favorites');
+    const plannerSection = $('planner');
+
+    const heroSearchForm = $('hero-search-form');
+    const resultsSearchForm = $('results-search-form');
+    const heroSearchInput = $('hero-search-input');
+    const resultsSearchInput = $('results-search-input');
+
+    const loadingState = $('loading-state');
+    const errorContainer = $('error-container');
+    const errorMessage = $('error-message');
+    const noResultsState = $('no-results-state');
+    const noResultsIngredient = $('no-results-ingredient');
+    const resultsContainer = $('results-container');
+    const nutritionList = $('nutrition-list');
+    const nutritionLabel = $('nutrition-label');
+    const nutritionProduct = $('nutrition-product');
+    const productImage = $('product-image');
+    const productName = $('product-name');
+    const productCode = $('product-code');
+    const nutritionMessage = $('nutrition-message');
+    const dietBadges = $('diet-badges');
+    const nutritionExtra = $('nutrition-extra');
+    const allergenList = $('allergen-list');
+    const ingredientsText = $('ingredients-text');
+    const ingredientsDetails = $('ingredients-details');
+    const recipesContainer = $('recipes-container');
+    const recipesMessage = $('recipes-message');
+    const apiInfo = $('api-info');
+
+    const authDialog = $('auth-dialog');
+    const authForm = $('auth-form');
+    const authTitle = $('auth-title');
+    const authMessage = $('auth-message');
+    const authName = $('auth-name');
+    const authEmail = $('auth-email');
+    const authPassword = $('auth-password');
+    const authError = $('auth-error');
+    const authSubmit = $('auth-submit');
+    const authToggle = $('auth-toggle');
+    const authBtn = $('auth-btn');
+    const navUser = $('nav-user');
+
+    let currentSearchId = 0;
+    let recToken = 0;
+    let lastSearch = null;       // { query, mode }
+    let authMode = 'signup';     // 'signup' | 'login'
+    let afterAuth = null;        // callback to run after a successful login
+
+    // ============================================
+    // SMALL HELPERS
+    // ============================================
+
+    /** Creates an element safely (uses textContent, so API data can't inject HTML) */
+    function el(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined && text !== null) node.textContent = text;
+      return node;
+    }
+
+    function toNumber(value) {
+      if (value === null || value === undefined || value === '') return null;
+      const n = Number(value);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function safeImageUrl(url) {
+      if (typeof url !== 'string' || !url.trim()) return '';
+      const trimmed = url.trim();
+      if (!/^https?:\/\//i.test(trimmed)) return '';
+      return trimmed.replace(/^http:\/\//i, 'https://');
+    }
+
+    function getCached(cache, key) {
+      const entry = cache.get(key);
+      if (entry && Date.now() - entry.time < CACHE_TTL) return entry;
+      return null;
+    }
+
+    function settle(promise) {
+      return promise.then(
+        value => ({ status: 'fulfilled', value }),
+        reason => ({ status: 'rejected', reason })
+      );
+    }
+
+    function titleCase(text) {
+      return text.replace(/\b\p{L}/gu, c => c.toUpperCase());
+    }
+
+    // ============================================
+    // VALIDATION FUNCTIONS
+    // ============================================
+
+    function sanitizeInput(input) {
+      return input
+        .trim()
+        .toLowerCase()
+        .replace(/[^\p{L}\s'-]/gu, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function validateInput(input) {
+      const trimmed = input.trim();
+
+      if (!trimmed) {
+        return { isValid: false, error: 'Please enter an ingredient or dish name.', cleaned: '' };
+      }
+      if (trimmed.length > VALIDATION_CONFIG.maxCharacters) {
+        return { isValid: false, error: `Search cannot exceed ${VALIDATION_CONFIG.maxCharacters} characters.`, cleaned: '' };
+      }
+
+      const cleaned = sanitizeInput(trimmed);
+
+      if (!cleaned) {
+        return { isValid: false, error: 'Please enter a valid name (letters only).', cleaned: '' };
+      }
+      if (cleaned.length < VALIDATION_CONFIG.minCharacters) {
+        return { isValid: false, error: `Search must be at least ${VALIDATION_CONFIG.minCharacters} characters long.`, cleaned: '' };
+      }
+      return { isValid: true, error: null, cleaned };
+    }
+
+    function displayValidationError(message, errorElementId) {
+      const errorElement = $(errorElementId);
+      if (errorElement) {
+        errorElement.textContent = message || '';
+        errorElement.style.display = message ? 'block' : 'none';
+      }
+    }
+
+    // ============================================
+    // RATE LIMITING (Open Food Facts: 10 searches/min/IP)
+    // ============================================
+
+    function checkOpenFoodFactsRateLimit() {
+      const { searchLimit, resetTime } = RATE_LIMIT_CONFIG.openFoodFacts;
+      const now = Date.now();
+
+      while (offRequestLog.length && now - offRequestLog[0] >= resetTime) {
+        offRequestLog.shift();
+      }
+      if (offRequestLog.length >= searchLimit) {
+        const waitSeconds = Math.ceil((resetTime - (now - offRequestLog[0])) / 1000);
+        return { allowed: false, waitSeconds };
+      }
+      offRequestLog.push(now);
+      return { allowed: true, waitSeconds: 0 };
+    }
+
+    // ============================================
+    // API FETCH FUNCTIONS
+    // ============================================
+
+    async function fetchJSON(url, options = {}) {
+      let response;
+      try {
+        response = await fetch(url, options);
+      } catch (networkError) {
+        throw new Error('Network error. Please check your connection and try again.');
+      }
+
+      if (response.status === 429 || response.status === 503) {
+        throw new Error('The service is busy (rate limit reached). Please try again in a moment.');
+      }
+      if (response.status === 404) {
+        throw new Error('The requested data was not found (HTTP 404).');
+      }
+      if (!response.ok) {
+        throw new Error(`Unexpected server response (HTTP ${response.status}).`);
+      }
+
+      const text = await response.text();
+      if (!text.trim()) return null;
+
+      try {
+        return JSON.parse(text);
+      } catch (parseError) {
+        throw new Error('Received an invalid response from the server.');
+      }
+    }
+
+    /** TheMealDB: recipes by ingredient. GET /filter.php?i=chicken_breast */
+    async function fetchRecipesFromTheMealDB(ingredient) {
+      const cleaned = ingredient.trim().toLowerCase().replace(/\s+/g, '_');
+      const { baseURL, endpoints } = API_CONFIG.themealdb;
+      const url = `${baseURL}${endpoints.filterBy}?i=${encodeURIComponent(cleaned)}`;
+
+      try {
+        const data = await fetchJSON(url);
+        if (!data || !Array.isArray(data.meals)) return [];
+        return data.meals;
+      } catch (error) {
+        console.error('TheMealDB fetch error:', error);
+        throw new Error(`Recipes unavailable: ${error.message}`);
+      }
+    }
+
+    /** TheMealDB: recipes by dish name. GET /search.php?s=arrabiata (returns full meal objects) */
+    async function fetchDishesFromTheMealDB(name) {
+      const { baseURL, endpoints } = API_CONFIG.themealdb;
+      const url = `${baseURL}${endpoints.searchByName}?s=${encodeURIComponent(name)}`;
+
+      try {
+        const data = await fetchJSON(url);
+        if (!data || !Array.isArray(data.meals)) return [];
+        data.meals.forEach(m => mealDetailsCache.set(m.idMeal, m)); // already full details
+        return data.meals;
+      } catch (error) {
+        console.error('TheMealDB search error:', error);
+        throw new Error(`Recipes unavailable: ${error.message}`);
+      }
+    }
+
+    /** TheMealDB: ids of every meal in a category (used for the Vegetarian / Vegan filters) */
+    async function getCategoryIds(category) {
+      const cached = getCached(categoryCache, category);
+      if (cached) return cached.value;
+
+      const { baseURL, endpoints } = API_CONFIG.themealdb;
+      const data = await fetchJSON(`${baseURL}${endpoints.filterBy}?c=${encodeURIComponent(category)}`);
+      const ids = new Set((data && Array.isArray(data.meals) ? data.meals : []).map(m => m.idMeal));
+      categoryCache.set(category, { value: ids, time: Date.now() });
+      return ids;
+    }
+
+    /** TheMealDB: full details for one meal. GET /lookup.php?i=52940 */
+    async function fetchMealDetails(mealId) {
+      const { baseURL, endpoints } = API_CONFIG.themealdb;
+      const url = `${baseURL}${endpoints.lookupById}?i=${encodeURIComponent(mealId)}`;
+
+      const data = await fetchJSON(url);
+      if (!data || !Array.isArray(data.meals) || !data.meals.length) return null;
+      return data.meals[0];
+    }
+
+    /** Open Food Facts: free-text product search, returns the best product or null */
+    async function fetchNutritionFromOpenFoodFacts(query) {
+      const rate = checkOpenFoodFactsRateLimit();
+      if (!rate.allowed) {
+        throw new Error(
+          `Nutrition unavailable: Open Food Facts allows ${RATE_LIMIT_CONFIG.openFoodFacts.searchLimit} searches per minute. Please wait ${rate.waitSeconds} second${rate.waitSeconds === 1 ? '' : 's'} and try again.`
+        );
+      }
+
+      const { baseURL, searchPath, fields, pageSize, userAgent, sendUserAgent } = API_CONFIG.openFoodFacts;
+      const params = new URLSearchParams({
+        search_terms: query.trim().toLowerCase(),
+        search_simple: '1',
+        action: 'process',
+        json: '1',
+        sort_by: 'unique_scans_n',
+        page_size: String(pageSize),
+        fields
+      });
+      const url = `${baseURL}${searchPath}?${params.toString()}`;
+      const options = sendUserAgent ? { headers: { 'User-Agent': userAgent } } : {};
+
+      try {
+        const data = await fetchJSON(url, options);
+        if (!data || !Array.isArray(data.products) || data.products.length === 0) return null;
+        return pickBestProduct(data.products);
+      } catch (error) {
+        console.error('Open Food Facts fetch error:', error);
+        throw new Error(`Nutrition unavailable: ${error.message}`);
+      }
+    }
+
+    function pickBestProduct(products) {
+      const withNutrition = products.filter(p => countNutritionValues(p) > 0);
+      if (!withNutrition.length) return null;
+
+      const named = withNutrition.filter(p => getProductName(p));
+      const pool = named.length ? named : withNutrition;
+
+      return pool.reduce((best, p) =>
+        countNutritionValues(p) > countNutritionValues(best) ? p : best
+      );
+    }
+
+    function getProductName(product) {
+      return (product.product_name || product.product_name_en || '').trim();
+    }
+
+    function countNutritionValues(product) {
+      if (!product || !product.nutriments) return 0;
+      const n = product.nutriments;
+      let count = getCalories(n) !== null ? 1 : 0;
+      NUTRIENTS_TO_DISPLAY.forEach(({ key }) => {
+        if (toNumber(n[key]) !== null) count++;
+      });
+      return count;
+    }
+
+    // Cached wrappers --------------------------------------------------------
+
+    async function getRecipes(ingredient) {
+      const cached = getCached(recipeCache, ingredient);
+      if (cached) return cached.value;
+      const value = await fetchRecipesFromTheMealDB(ingredient);
+      recipeCache.set(ingredient, { value, time: Date.now() });
+      return value;
+    }
+
+    async function getDishRecipes(name) {
+      const cached = getCached(dishCache, name);
+      if (cached) return cached.value;
+      const value = await fetchDishesFromTheMealDB(name);
+      dishCache.set(name, { value, time: Date.now() });
+      return value;
+    }
+
+    async function getNutrition(query) {
+      const cached = getCached(nutritionCache, query);
+      if (cached) return cached.value;
+      const value = await fetchNutritionFromOpenFoodFacts(query);
+      nutritionCache.set(query, { value, time: Date.now() });
+      return value;
+    }
+
+    // ============================================
+    // DATA PROCESSING FUNCTIONS
+    // ============================================
+
+    function getCalories(nutriments) {
+      const kcal = toNumber(nutriments['energy-kcal_100g']);
+      if (kcal !== null) return kcal;
+      const kj = toNumber(nutriments['energy-kj_100g']) ?? toNumber(nutriments['energy_100g']);
+      return kj !== null ? kj / 4.184 : null;
+    }
+
+    function extractNutritionData(product) {
+      if (!product || !product.nutriments) return [];
+      const n = product.nutriments;
+
+      const rows = [{ label: 'Calories', value: getCalories(n), unit: 'kcal' }];
+      NUTRIENTS_TO_DISPLAY.forEach(({ key, label, unit }) => {
+        rows.push({ label, value: toNumber(n[key]), unit });
+      });
+      return rows;
+    }
+
+    /** Allergen tags look like "en:milk" -> "Milk" */
+    function extractAllergens(product) {
+      const tags = Array.isArray(product.allergens_tags) ? product.allergens_tags : [];
+      return tags
+        .map(tag => String(tag).replace(/^[a-z]{2}:/i, '').replace(/-/g, ' '))
+        .filter(Boolean)
+        .map(titleCase);
+    }
+
+    function extractRecipeData(meals) {
+      if (!Array.isArray(meals)) return [];
+      return meals.slice(0, API_CONFIG.themealdb.maxRecipes).map(meal => ({
+        id: meal.idMeal,
+        name: (meal.strMeal || '').trim() || 'Unknown Recipe',
+        image: safeImageUrl(meal.strMealThumb),
+        area: (meal.strArea || '').trim()
+      }));
+    }
+
+    function extractMealDetails(meal) {
+      const ingredients = [];
+      for (let i = 1; i <= 20; i++) {
+        const ingredient = (meal[`strIngredient${i}`] || '').trim();
+        if (!ingredient) continue;
+        const measure = (meal[`strMeasure${i}`] || '').trim();
+        ingredients.push(measure ? `${measure} ${ingredient}` : ingredient);
+      }
+
+      const instructions = (meal.strInstructions || '')
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean);
+
+      return {
+        category: (meal.strCategory || '').trim(),
+        area: (meal.strArea || '').trim(),
+        ingredients,
+        instructions
+      };
+    }
+
+    // ============================================
+    // DIETARY PREFERENCES + GOALS
+    // ============================================
+
+    /** Nutrition-based diets that apply right now (chips + goal) */
+    function getActiveNutritionDiets() {
+      const set = new Set([...state.diets].filter(id => DIET_RULES[id]));
+      const goal = GOALS.find(g => g.id === state.goal);
+      if (goal) goal.diets.forEach(id => set.add(id));
+      return [...set];
+    }
+
+    /** Keeps only recipes in TheMealDB's Vegetarian / Vegan categories when those chips are on */
+    async function applyRecipeDiets(meals) {
+      const wantsVegan = state.diets.has('vegan');
+      const wantsVeg = state.diets.has('vegetarian');
+      if (!wantsVegan && !wantsVeg) return { meals, note: '' };
+
+      try {
+        let allowed;
+        if (wantsVegan) {
+          allowed = await getCategoryIds('Vegan');
+        } else {
+          const [veg, vegan] = await Promise.all([getCategoryIds('Vegetarian'), getCategoryIds('Vegan')]);
+          allowed = new Set([...veg, ...vegan]);
+        }
+        const filtered = meals.filter(m => allowed.has(m.idMeal));
+        const note = meals.length && !filtered.length
+          ? `None of the recipes found are ${wantsVegan ? 'vegan' : 'vegetarian'}. Try another search or turn off the filter.`
+          : '';
+        return { meals: filtered, note };
+      } catch (error) {
+        console.error('Diet filter error:', error);
+        return { meals, note: 'Could not check the vegetarian/vegan filter, so all recipes are shown.' };
+      }
+    }
+
+    // ============================================
+    // SEARCH OPTIONS UI (mode, goal, diet chips)
+    // ============================================
+
+    function buildOptions(container) {
+      container.innerHTML = '';
+
+      const row = el('div', 'option-row');
+
+      const modeLabel = el('label', '', 'Search by ');
+      const modeSelect = el('select', 'mode-select');
+      modeSelect.setAttribute('aria-label', 'Search by');
+      modeSelect.appendChild(new Option('Ingredient', 'ingredient'));
+      modeSelect.appendChild(new Option('Dish name', 'dish'));
+      modeLabel.appendChild(modeSelect);
+      row.appendChild(modeLabel);
+
+      const goalLabel = el('label', '', 'Health goal ');
+      const goalSelect = el('select', 'goal-select');
+      goalSelect.setAttribute('aria-label', 'Health goal');
+      GOALS.forEach(g => goalSelect.appendChild(new Option(g.label, g.id)));
+      goalLabel.appendChild(goalSelect);
+      row.appendChild(goalLabel);
+
+      container.appendChild(row);
+
+      const chips = el('div', 'chip-row');
+      chips.setAttribute('role', 'group');
+      chips.setAttribute('aria-label', 'Dietary preferences');
+      DIET_OPTIONS.forEach(opt => {
+        const chip = el('button', 'chip', opt.label);
+        chip.type = 'button';
+        chip.dataset.diet = opt.id;
+        chip.setAttribute('aria-pressed', 'false');
+        chips.appendChild(chip);
+      });
+      container.appendChild(chips);
+    }
+
+    /** Keeps both copies of the options (home + results) in sync with state */
+    function syncControls() {
+      document.querySelectorAll('.mode-select').forEach(s => { s.value = state.mode; });
+      document.querySelectorAll('.goal-select').forEach(s => { s.value = state.goal; });
+      document.querySelectorAll('.chip[data-diet]').forEach(chip => {
+        chip.setAttribute('aria-pressed', String(state.diets.has(chip.dataset.diet)));
+      });
+      const placeholder = state.mode === 'dish' ? 'e.g. chicken curry' : 'e.g. chicken';
+      document.querySelectorAll('.search-input').forEach(i => { i.placeholder = placeholder; });
+    }
+
+    function onPreferencesChanged() {
+      savePrefs();
+      syncControls();
+      // Re-run the visible search / recommendations so the filters take effect immediately
+      if (resultsSection.style.display !== 'none' && lastSearch) {
+        performSearch(lastSearch.query, 'results-validation-error', { mode: lastSearch.mode, skipHistory: true });
+      } else if (heroSection.style.display !== 'none') {
+        renderHome();
+      }
+    }
+
+    // ============================================
+    // AUTH (demo: accounts live in localStorage)
+    // ============================================
+
+    function randomSalt() {
+      const bytes = new Uint8Array(8);
+      if (window.crypto && crypto.getRandomValues) {
+        crypto.getRandomValues(bytes);
+      } else {
+        for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+      }
+      return [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function hashPassword(password, salt) {
+      const data = new TextEncoder().encode(salt + password);
+      if (window.crypto && crypto.subtle) {
+        const buf = await crypto.subtle.digest('SHA-256', data);
+        return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+      // Fallback for non-secure contexts (demo only, NOT secure)
+      let h = 0;
+      for (const b of data) h = (h * 31 + b) | 0;
+      return 'weak-' + h;
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      const signup = mode === 'signup';
+      authTitle.textContent = signup ? 'Create your account' : 'Welcome back';
+      authSubmit.textContent = signup ? 'Sign up' : 'Log in';
+      authToggle.textContent = signup ? 'Already have an account? Log in' : 'New here? Create an account';
+      authName.hidden = !signup;
+      authPassword.autocomplete = signup ? 'new-password' : 'current-password';
+      authError.textContent = '';
+      authError.style.display = 'none';
+    }
+
+    function openAuth(message, callback) {
+      afterAuth = callback || null;
+      setAuthMode('login');
+      authForm.reset();
+      authMessage.textContent = message || '';
+      authMessage.hidden = !message;
+      if (!authDialog.open) authDialog.showModal();
+      authEmail.focus();
+    }
+
+    function showAuthError(message) {
+      authError.textContent = message;
+      authError.style.display = message ? 'block' : 'none';
+    }
+
+    async function handleAuthSubmit(event) {
+      event.preventDefault();
+      const name = authName.value.trim();
+      const email = authEmail.value.trim().toLowerCase();
+      const password = authPassword.value;
+
+      if (authMode === 'signup' && name.length < 2) return showAuthError('Please enter your name.');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showAuthError('Please enter a valid email address.');
+      if (password.length < 6) return showAuthError('Password must be at least 6 characters.');
+
+      const users = store.get('nutrialize:users', []);
+      const existing = users.find(u => u.email === email);
+
+      if (authMode === 'signup') {
+        if (existing) return showAuthError('An account with this email already exists. Try logging in.');
+        const salt = randomSalt();
+        const hash = await hashPassword(password, salt);
+        users.push({ name, email, salt, hash });
+        store.set('nutrialize:users', users);
+        completeLogin({ name, email });
+      } else {
+        if (!existing) return showAuthError('No account found for this email. Create one first.');
+        const hash = await hashPassword(password, existing.salt);
+        if (hash !== existing.hash) return showAuthError('Incorrect password.');
+        completeLogin({ name: existing.name, email: existing.email });
+      }
+    }
+
+    function completeLogin(user) {
+      state.user = user;
+      store.set('nutrialize:session', user.email);
+      authDialog.close();
+      loadPrefs();
+      syncControls();
+      updateNav();
+      const callback = afterAuth;
+      afterAuth = null;
+      if (callback) callback(); else refreshCurrentView();
+    }
+
+    function logout() {
+      state.user = null;
+      store.set('nutrialize:session', null);
+      loadPrefs();
+      syncControls();
+      updateNav();
+      goHome();
+    }
+
+    function restoreSession() {
+      const email = store.get('nutrialize:session', null);
+      if (!email) return;
+      const user = store.get('nutrialize:users', []).find(u => u.email === email);
+      if (user) state.user = { name: user.name, email: user.email };
+    }
+
+    function updateNav() {
+      if (state.user) {
+        navUser.textContent = `Hi, ${state.user.name.split(' ')[0]}`;
+        navUser.hidden = false;
+        authBtn.textContent = 'Log out';
+      } else {
+        navUser.hidden = true;
+        authBtn.textContent = 'Log in';
+      }
+    }
+
+    // ============================================
+    // FAVORITES
+    // ============================================
+
+    function isFavorite(id) {
+      return !!state.user && getData().favorites.some(f => f.id === id);
+    }
+
+    function setFavButton(btn, active) {
+      btn.textContent = active ? '♥' : '♡';
+      btn.setAttribute('aria-pressed', String(active));
+      btn.setAttribute('aria-label', active ? 'Remove from favorites' : 'Save to favorites');
+    }
+
+    function refreshFavButtons() {
+      const ids = new Set(state.user ? getData().favorites.map(f => f.id) : []);
+      document.querySelectorAll('.fav-btn').forEach(btn => setFavButton(btn, ids.has(btn.dataset.favId)));
+    }
+
+    function toggleFavorite(recipe) {
+      if (!state.user) {
+        openAuth('Log in or sign up to save favorites.');
+        return;
+      }
+      const d = getData();
+      const index = d.favorites.findIndex(f => f.id === recipe.id);
+      if (index >= 0) {
+        d.favorites.splice(index, 1);
+        Object.keys(d.plan).forEach(day => { if (d.plan[day] === recipe.id) delete d.plan[day]; });
+      } else {
+        d.favorites.push({ id: recipe.id, name: recipe.name, image: recipe.image, area: recipe.area });
+      }
+      saveData(d);
+      refreshFavButtons();
+      if (favoritesSection.style.display !== 'none') renderFavorites();
+    }
+
+    function renderFavorites() {
+      const grid = $('favorites-grid');
+      grid.innerHTML = '';
+      const favs = state.user ? getData().favorites : [];
+      $('favorites-empty').hidden = favs.length > 0;
+      favs.forEach(recipe => grid.appendChild(createRecipeCard(recipe)));
+    }
+
+    // ============================================
+    // HISTORY + RECOMMENDATIONS
+    // ============================================
+
+    function addHistory(query, mode) {
+      const d = getData();
+      d.history.push({ q: query, mode, time: Date.now() });
+      if (d.history.length > 30) d.history = d.history.slice(-30);
+      saveData(d);
+    }
+
+    function recentSearches(history, max) {
+      const seen = new Set();
+      const out = [];
+      for (let i = history.length - 1; i >= 0 && out.length < max; i--) {
+        const key = `${history[i].mode}:${history[i].q}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(history[i]);
+      }
+      return out;
+    }
+
+    function topIngredients(history, max) {
+      const counts = new Map();
+      history.filter(h => h.mode === 'ingredient').forEach(h => counts.set(h.q, (counts.get(h.q) || 0) + 1));
+      return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, max).map(([q]) => q);
+    }
+
+    async function renderHome() {
+      const token = ++recToken;
+      const { history } = getData();
+
+      // Recent searches (the "scan history" from the proposal)
+      const recent = recentSearches(history, 6);
+      const chipBox = $('recent-chips');
+      chipBox.innerHTML = '';
+      recent.forEach(h => {
+        const chip = el('button', 'chip', h.q);
+        chip.type = 'button';
+        chip.dataset.recent = h.q;
+        chip.dataset.recentMode = h.mode;
+        chipBox.appendChild(chip);
+      });
+      $('recent-searches').hidden = recent.length === 0;
+
+      // Recommendations based on the most-searched ingredients + diet preferences
+      const body = $('recommended-body');
+      const grid = $('recommended-grid');
+      const msg = $('recommended-msg');
+      const tops = topIngredients(history, 2);
+      body.hidden = true;
+      grid.innerHTML = '';
+      msg.hidden = true;
+      recommendedSection.classList.toggle('is-empty', recent.length === 0);
+
+      if (!tops.length) return;
+
+      try {
+        const lists = await Promise.all(tops.map(getRecipes));
+        if (token !== recToken) return;
+
+        // Round-robin merge so each favorite ingredient is represented
+        const merged = [];
+        const seen = new Set();
+        for (let i = 0; merged.length < 30 && lists.some(l => i < l.length); i++) {
+          lists.forEach(list => {
+            if (i < list.length && !seen.has(list[i].idMeal)) {
+              seen.add(list[i].idMeal);
+              merged.push(list[i]);
+            }
+          });
+        }
+
+        const { meals, note } = await applyRecipeDiets(merged);
+        if (token !== recToken) return;
+
+        const picks = extractRecipeData(meals);
+        const dietText = [...state.diets].map(id => DIET_OPTIONS.find(o => o.id === id).label.toLowerCase());
+        const goal = GOALS.find(g => g.id === state.goal);
+        const extras = [...dietText, goal && goal.id ? `goal: ${goal.label.toLowerCase()}` : ''].filter(Boolean);
+        $('recommended-sub').textContent =
+          `Based on your searches for ${tops.join(' and ')}` + (extras.length ? ` · ${extras.join(', ')}` : '');
+
+        picks.forEach(recipe => grid.appendChild(createRecipeCard(recipe)));
+        if (!picks.length) {
+          msg.textContent = note || 'No recommendations yet. Try searching for a few more ingredients.';
+          msg.hidden = false;
+        }
+        body.hidden = false;
+      } catch (error) {
+        console.error('Recommendation error:', error);
+        body.hidden = true;
+      }
+    }
+
+    // ============================================
+    // WEEKLY MEAL PLANNER
+    // ============================================
+
+    function renderPlanner() {
+      const grid = $('plan-grid');
+      grid.innerHTML = '';
+
+      const favs = state.user ? getData().favorites : [];
+      $('planner-empty').hidden = favs.length > 0;
+      $('planner-actions').hidden = favs.length === 0;
+      $('plan-summary').textContent = '';
+      if (!favs.length) return;
+
+      const updateSummary = () => {
+        const plan = getData().plan;
+        const planned = DAYS.filter(day => favs.some(f => f.id === plan[day])).length;
+        $('plan-summary').textContent = `${planned} of 7 days planned`;
+      };
+
+      DAYS.forEach(day => {
+        const card = el('div', 'plan-day');
+        card.appendChild(el('h4', '', day));
+
+        const select = el('select');
+        select.setAttribute('aria-label', `Recipe for ${day}`);
+        select.appendChild(new Option('Nothing planned', ''));
+        favs.forEach(f => select.appendChild(new Option(f.name, f.id)));
+
+        const preview = el('div', 'plan-preview');
+
+        const showPreview = id => {
+          preview.innerHTML = '';
+          const recipe = favs.find(f => f.id === id);
+          if (!recipe) {
+            preview.appendChild(el('span', 'plan-empty', 'No meal yet'));
+            return;
+          }
+          const img = safeImageUrl(recipe.image);
+          if (img) {
+            const thumb = el('img');
+            thumb.src = img;
+            thumb.alt = recipe.name;
+            thumb.loading = 'lazy';
+            preview.appendChild(thumb);
+          }
+          preview.appendChild(el('span', '', recipe.name));
+        };
+
+        const saved = getData().plan[day];
+        select.value = favs.some(f => f.id === saved) ? saved : '';
+        showPreview(select.value);
+
+        select.addEventListener('change', () => {
+          const d = getData();
+          if (select.value) d.plan[day] = select.value; else delete d.plan[day];
+          saveData(d);
+          showPreview(select.value);
+          updateSummary();
+        });
+
+        card.appendChild(select);
+        card.appendChild(preview);
+        grid.appendChild(card);
+      });
+
+      updateSummary();
+    }
+
+    function autoFillPlan() {
+      const d = getData();
+      if (!d.favorites.length) return;
+      let next = 0;
+      DAYS.forEach(day => {
+        if (!d.favorites.some(f => f.id === d.plan[day])) {
+          d.plan[day] = d.favorites[next % d.favorites.length].id;
+          next++;
+        }
+      });
+      saveData(d);
+      renderPlanner();
+    }
+
+    function clearPlan() {
+      const d = getData();
+      d.plan = {};
+      saveData(d);
+      renderPlanner();
+    }
+
+    // ============================================
+    // UI RENDERING FUNCTIONS
+    // ============================================
+
+    function clearResults() {
+      resultsContainer.style.display = 'none';
+      loadingState.style.display = 'none';
+      errorContainer.style.display = 'none';
+      noResultsState.style.display = 'none';
+      apiInfo.style.display = 'none';
+      nutritionList.innerHTML = '';
+      recipesContainer.innerHTML = '';
+      nutritionProduct.style.display = 'none';
+      productImage.style.display = 'none';
+      productImage.removeAttribute('src');
+      nutritionMessage.style.display = 'none';
+      recipesMessage.style.display = 'none';
+      nutritionLabel.style.display = '';
+      dietBadges.hidden = true;
+      dietBadges.innerHTML = '';
+      nutritionExtra.hidden = true;
+      allergenList.innerHTML = '';
+      ingredientsText.textContent = '';
+      ingredientsDetails.open = false;
+    }
+
+    function showLoadingState() {
+      clearResults();
+      loadingState.style.display = 'flex';
+    }
+
+    function showErrorState(message) {
+      clearResults();
+      errorMessage.textContent = message;
+      errorContainer.style.display = 'block';
+    }
+
+    function showNoResultsState(query) {
+      clearResults();
+      noResultsIngredient.textContent = query;
+      noResultsState.style.display = 'block';
+    }
+
+    /** Badges showing whether the product meets the user's goal / diet rules */
+    function renderDietBadges(product) {
+      dietBadges.innerHTML = '';
+      const active = getActiveNutritionDiets();
+      if (!product || !active.length) {
+        dietBadges.hidden = true;
+        return;
+      }
+      const n = product.nutriments;
+      const values = {
+        kcal: getCalories(n),
+        protein: toNumber(n.proteins_100g),
+        sugars: toNumber(n.sugars_100g)
+      };
+      active.forEach(id => {
+        const rule = DIET_RULES[id];
+        const result = rule.test(values);
+        const cls = result === null ? 'unknown' : result ? 'ok' : 'no';
+        const mark = result === null ? '?' : result ? '✓' : '✕';
+        const badge = el('span', `badge ${cls}`, `${mark} ${rule.label} (${rule.hint})`);
+        dietBadges.appendChild(badge);
+      });
+      dietBadges.hidden = false;
+    }
+
+    function renderNutrition(query, product, errorText, note) {
+      nutritionList.innerHTML = '';
+      nutritionProduct.style.display = 'none';
+      nutritionMessage.style.display = 'none';
+      nutritionExtra.hidden = true;
+      dietBadges.hidden = true;
+
+      if (!product) {
+        nutritionLabel.style.display = 'none';
+        nutritionMessage.textContent = errorText || `No nutrition data found for "${query}".`;
+        nutritionMessage.style.display = 'block';
+        return;
+      }
+
+      nutritionLabel.style.display = '';
+
+      productName.textContent = getProductName(product) || 'Unnamed product';
+      productCode.textContent = product.code ? `Barcode: ${product.code}` : '';
+      productCode.style.display = product.code ? 'block' : 'none';
+
+      const imageUrl = safeImageUrl(product.image_url);
+      if (imageUrl) {
+        productImage.src = imageUrl;
+        productImage.alt = productName.textContent;
+        productImage.style.display = 'block';
+        productImage.onerror = () => { productImage.style.display = 'none'; };
+      } else {
+        productImage.style.display = 'none';
+      }
+      nutritionProduct.style.display = 'flex';
+
+      renderDietBadges(product);
+
+      extractNutritionData(product).forEach(({ label, value, unit }) => {
+        const li = el('li');
+        li.appendChild(el('strong', '', label));
+        li.appendChild(value === null ? el('span', 'na', 'N/A') : el('span', '', `${value.toFixed(1)} ${unit}`));
+        nutritionList.appendChild(li);
+      });
+
+      // Allergens + ingredients (Open Food Facts)
+      const allergens = extractAllergens(product);
+      const ingredients = (product.ingredients_text_en || product.ingredients_text || '').trim();
+      allergenList.innerHTML = '';
+      if (allergens.length) {
+        allergens.forEach(a => allergenList.appendChild(el('span', 'allergen', a)));
+      } else {
+        allergenList.appendChild(el('span', 'plan-empty', 'None listed'));
+      }
+      ingredientsText.textContent = ingredients || 'No ingredient list available for this product.';
+      nutritionExtra.hidden = false;
+
+      if (note) {
+        nutritionMessage.textContent = note;
+        nutritionMessage.style.display = 'block';
+      }
+    }
+
+    function renderRecipes(query, meals, errorText) {
+      recipesContainer.innerHTML = '';
+      recipesMessage.style.display = 'none';
+
+      const recipes = extractRecipeData(meals);
+      recipes.forEach(recipe => recipesContainer.appendChild(createRecipeCard(recipe)));
+
+      if (!recipes.length || errorText) {
+        recipesMessage.textContent = errorText || `No recipes found for "${query}".`;
+        recipesMessage.style.display = 'block';
+      }
+    }
+
+    function createRecipeCard(recipe) {
+      const card = el('article', 'recipe-card');
+      const head = el('div', 'recipe-head');
+
+      const summary = el('button', 'recipe-summary');
+      summary.type = 'button';
+      summary.setAttribute('aria-expanded', 'false');
+
+      if (recipe.image) {
+        const img = el('img', 'recipe-thumb');
+        img.src = recipe.image;
+        img.alt = recipe.name;
+        img.loading = 'lazy';
+        img.onerror = () => img.replaceWith(el('div', 'recipe-color'));
+        summary.appendChild(img);
+      } else {
+        summary.appendChild(el('div', 'recipe-color'));
+      }
+
+      const content = el('div', 'recipe-content');
+      content.appendChild(el('h5', '', recipe.name));
+      content.appendChild(el('p', '', recipe.area ? `${recipe.area} cuisine · Tap to view recipe` : 'Tap to view recipe'));
+      summary.appendChild(content);
+      summary.appendChild(el('span', 'recipe-toggle', '▾'));
+      head.appendChild(summary);
+
+      const fav = el('button', 'fav-btn');
+      fav.type = 'button';
+      fav.dataset.favId = recipe.id;
+      setFavButton(fav, isFavorite(recipe.id));
+      fav.addEventListener('click', () => toggleFavorite(recipe));
+      head.appendChild(fav);
+
+      const details = el('div', 'recipe-details');
+      details.hidden = true;
+
+      summary.addEventListener('click', () => toggleRecipeDetails(recipe.id, summary, details));
+
+      card.appendChild(head);
+      card.appendChild(details);
+      return card;
+    }
+
+    async function toggleRecipeDetails(mealId, summary, details) {
+      const isOpen = summary.getAttribute('aria-expanded') === 'true';
+
+      if (isOpen) {
+        summary.setAttribute('aria-expanded', 'false');
+        details.hidden = true;
+        return;
+      }
+
+      summary.setAttribute('aria-expanded', 'true');
+      details.hidden = false;
+
+      if (details.dataset.loaded === 'true') return;
+
+      details.innerHTML = '';
+      details.appendChild(el('p', 'details-status', 'Loading recipe...'));
+
+      try {
+        let meal = mealDetailsCache.get(mealId);
+        if (!meal) {
+          meal = await fetchMealDetails(mealId);
+          if (meal) mealDetailsCache.set(mealId, meal);
+        }
+
+        details.innerHTML = '';
+
+        if (!meal) {
+          details.appendChild(el('p', 'details-status', 'Recipe details are not available.'));
+          return;
+        }
+
+        renderMealDetails(details, extractMealDetails(meal));
+        details.dataset.loaded = 'true';
+      } catch (error) {
+        console.error('Recipe details error:', error);
+        details.innerHTML = '';
+        details.appendChild(el('p', 'details-status', `Could not load recipe details: ${error.message}`));
+      }
+    }
+
+    function renderMealDetails(container, info) {
+      const meta = [info.category, info.area].filter(Boolean).join(' · ');
+      if (meta) container.appendChild(el('p', 'details-meta', meta));
+
+      if (info.ingredients.length) {
+        container.appendChild(el('h6', '', 'Ingredients'));
+        const ul = el('ul', 'details-ingredients');
+        info.ingredients.forEach(line => ul.appendChild(el('li', '', line)));
+        container.appendChild(ul);
+      }
+
+      if (info.instructions.length) {
+        container.appendChild(el('h6', '', 'Instructions'));
+        info.instructions.forEach(line => container.appendChild(el('p', 'details-step', line)));
+      } else {
+        container.appendChild(el('p', 'details-status', 'No instructions available for this recipe.'));
+      }
+    }
+
+    // ============================================
+    // NAVIGATION
+    // ============================================
+
+    function setSearching(isSearching) {
+      document.querySelectorAll('.search-form button').forEach(btn => { btn.disabled = isSearching; });
+    }
+
+    const VIEWS = {
+      home: [heroSection, recommendedSection],
+      results: [resultsSection],
+      favorites: [favoritesSection],
+      planner: [plannerSection]
+    };
+
+    function showView(name) {
+      Object.values(VIEWS).flat().forEach(section => { section.style.display = 'none'; });
+      VIEWS[name].forEach(section => {
+        section.style.display = section === heroSection ? 'flex' : 'block';
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function currentView() {
+      return Object.keys(VIEWS).find(name => VIEWS[name][0].style.display !== 'none') || 'home';
+    }
+
+    function refreshCurrentView() {
+      const view = currentView();
+      refreshFavButtons();
+      if (view === 'home') renderHome();
+      if (view === 'favorites') renderFavorites();
+      if (view === 'planner') renderPlanner();
+    }
+
+    function goHome(event) {
+      if (event) event.preventDefault();
+      currentSearchId++; // ignore any in-flight search
+      setSearching(false);
+      clearResults();
+      lastSearch = null;
+      heroSearchInput.value = '';
+      resultsSearchInput.value = '';
+      displayValidationError('', 'hero-validation-error');
+      displayValidationError('', 'results-validation-error');
+      showView('home');
+      renderHome();
+      heroSearchInput.focus();
+    }
+
+    function goFavorites(event) {
+      if (event) event.preventDefault();
+      if (!state.user) {
+        openAuth('Log in to see your favorite recipes.', goFavorites);
+        return;
+      }
+      currentSearchId++;
+      setSearching(false);
+      showView('favorites');
+      renderFavorites();
+    }
+
+    function goPlanner(event) {
+      if (event) event.preventDefault();
+      if (!state.user) {
+        openAuth('Log in to plan your week.', goPlanner);
+        return;
+      }
+      currentSearchId++;
+      setSearching(false);
+      showView('planner');
+      renderPlanner();
+    }
+
+    // ============================================
+    // SEARCH FLOW
+    // ============================================
+
+    async function performSearch(rawInput, errorElementId, options = {}) {
+      const validation = validateInput(rawInput);
+
+      if (!validation.isValid) {
+        displayValidationError(validation.error, errorElementId);
+        return;
+      }
+
+      displayValidationError('', 'hero-validation-error');
+      displayValidationError('', 'results-validation-error');
+
+      const query = validation.cleaned;
+      const mode = options.mode || state.mode;
+      if (mode !== state.mode) {
+        state.mode = mode;
+        savePrefs();
+        syncControls();
+      }
+
+      const searchId = ++currentSearchId;
+      lastSearch = { query, mode };
+      if (!options.skipHistory) addHistory(query, mode);
+
+      showView('results');
+      resultsSearchInput.value = query;
+      showLoadingState();
+      setSearching(true);
+
+      let recipesResult;
+      let nutritionResult;
+      let nutritionNote = '';
+
+      if (mode === 'dish') {
+        // Dish search: find the dish first, then look up its main ingredient's nutrition
+        recipesResult = await settle(getDishRecipes(query));
+        if (searchId !== currentSearchId) return;
+
+        let nutritionQuery = query;
+        if (recipesResult.status === 'fulfilled' && recipesResult.value.length) {
+          const first = recipesResult.value[0];
+          const main = (first.strIngredient1 || '').trim().toLowerCase();
+          if (main) {
+            nutritionQuery = main;
+            nutritionNote = `Nutrition shown for the main ingredient of "${first.strMeal}": ${main}.`;
+          }
+        }
+        nutritionResult = await settle(getNutrition(nutritionQuery));
+      } else {
+        // Ingredient search: both APIs in parallel; one failing must not hide the other's results
+        [recipesResult, nutritionResult] = await Promise.all([
+          settle(getRecipes(query)),
+          settle(getNutrition(query))
+        ]);
+      }
+
+      if (searchId !== currentSearchId) return;
+
+      const recipesFailed = recipesResult.status === 'rejected';
+      const nutritionFailed = nutritionResult.status === 'rejected';
+
+      if (recipesFailed && nutritionFailed) {
+        setSearching(false);
+        showErrorState(`${recipesResult.reason.message} ${nutritionResult.reason.message}`);
+        return;
+      }
+
+      let meals = recipesFailed ? [] : recipesResult.value;
+      let filterNote = '';
+      if (!recipesFailed && meals.length) {
+        const filtered = await applyRecipeDiets(meals);
+        if (searchId !== currentSearchId) return;
+        meals = filtered.meals;
+        filterNote = filtered.note;
+      }
+
+      setSearching(false);
+
+      const product = nutritionFailed ? null : nutritionResult.value;
+      const hasRecipes = extractRecipeData(meals).length > 0;
+      const hasProduct = !!product;
+
+      if (!recipesFailed && !nutritionFailed && !hasRecipes && !hasProduct && !filterNote) {
+        showNoResultsState(query);
+        return;
+      }
+
+      clearResults();
+      renderNutrition(query, product, nutritionFailed ? nutritionResult.reason.message : '', hasProduct ? nutritionNote : '');
+      renderRecipes(query, meals, recipesFailed ? recipesResult.reason.message : filterNote);
+      resultsContainer.style.display = 'grid';
+      apiInfo.style.display = 'block';
+    }
+
+    // ============================================
+    // EVENT LISTENERS
+    // ============================================
+
+    heroSearchForm.addEventListener('submit', event => {
+      event.preventDefault();
+      performSearch(heroSearchInput.value, 'hero-validation-error');
+    });
+
+    resultsSearchForm.addEventListener('submit', event => {
+      event.preventDefault();
+      performSearch(resultsSearchInput.value, 'results-validation-error');
+    });
+
+    heroSearchInput.addEventListener('input', () => displayValidationError('', 'hero-validation-error'));
+    resultsSearchInput.addEventListener('input', () => displayValidationError('', 'results-validation-error'));
+
+    // Diet chips + recent-search chips (event delegation)
+    document.addEventListener('click', event => {
+      const dietChip = event.target.closest('.chip[data-diet]');
+      if (dietChip) {
+        const id = dietChip.dataset.diet;
+        if (state.diets.has(id)) {
+          state.diets.delete(id);
+        } else {
+          state.diets.add(id);
+          if (id === 'vegan') state.diets.add('vegetarian');
+        }
+        if (id === 'vegetarian' && !state.diets.has('vegetarian')) state.diets.delete('vegan');
+        onPreferencesChanged();
+        return;
+      }
+
+      const recentChip = event.target.closest('.chip[data-recent]');
+      if (recentChip) {
+        performSearch(recentChip.dataset.recent, 'hero-validation-error', { mode: recentChip.dataset.recentMode });
+      }
+    });
+
+    document.addEventListener('change', event => {
+      if (event.target.matches('.mode-select')) {
+        state.mode = event.target.value === 'dish' ? 'dish' : 'ingredient';
+        savePrefs();
+        syncControls();
+      } else if (event.target.matches('.goal-select')) {
+        state.goal = event.target.value;
+        onPreferencesChanged();
+      }
+    });
+
+    // Navigation
+    $('home-link').addEventListener('click', goHome);
+    $('footer-home').addEventListener('click', goHome);
+    document.querySelector('.logo').addEventListener('click', goHome);
+    $('favorites-link').addEventListener('click', goFavorites);
+    $('footer-favorites').addEventListener('click', goFavorites);
+    $('planner-link').addEventListener('click', goPlanner);
+    $('footer-planner').addEventListener('click', goPlanner);
+    $('plan-autofill').addEventListener('click', autoFillPlan);
+    $('plan-clear').addEventListener('click', clearPlan);
+
+    // Auth
+    authBtn.addEventListener('click', () => {
+      if (state.user) { logout(); return; }
+      openAuth('');
+      setAuthMode('login');
+    });
+    authToggle.addEventListener('click', () => setAuthMode(authMode === 'signup' ? 'login' : 'signup'));
+    $('auth-close').addEventListener('click', () => { afterAuth = null; authDialog.close(); });
+    authForm.addEventListener('submit', handleAuthSubmit);
+    authDialog.addEventListener('close', () => { authPassword.value = ''; });
+
+    // ============================================
+    // INIT
+    // ============================================
+    document.querySelectorAll('[data-options]').forEach(buildOptions);
+    restoreSession();
+    loadPrefs();
+    syncControls();
+    updateNav();
+    showView('home');
+    renderHome();
+  </script>
+</body>
+</html>
