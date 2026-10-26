@@ -130,7 +130,7 @@
           </div>
 
           <p class="notice" id="nutrition-message" style="display: none;"></p>
-          <p class="nutrition-source" id="nutrition-source">Data from Open Food Facts API</p>
+          <p class="nutrition-source" id="nutrition-source">Data from <a href="https://world.openfoodfacts.org/" target="_blank" rel="noopener">Open Food Facts API</a></p>
         </div>
       </div>
 
@@ -141,7 +141,7 @@
           <!-- Recipe cards populated by JavaScript -->
         </div>
         <p class="notice" id="recipes-message" style="display: none;"></p>
-        <p class="recipes-source">Data from TheMealDB API</p>
+        <p class="recipes-source">Data from <a href="https://www.themealdb.com/" target="_blank" rel="noopener">TheMealDB API</a></p>
       </div>
     </div>
 
@@ -227,15 +227,10 @@
       },
       openFoodFacts: {
         baseURL: 'https://world.openfoodfacts.org',
-        // Free-text search (the v2 search endpoint only filters by exact tags)
         searchPath: '/cgi/search.pl',
         fields: 'code,product_name,product_name_en,image_url,nutriments,allergens_tags,ingredients_text,ingredients_text_en',
         pageSize: 10,
-        // Recommended format: AppName/Version (ContactEmail)
         userAgent: 'Nutrialize/1.0 (your-email@example.com)',
-        // Browsers don't reliably allow setting User-Agent in fetch(), and a custom
-        // header can trigger a CORS preflight. Keep false for browser use; send the
-        // header from the Next.js server layer in the final version.
         sendUserAgent: false
       }
     };

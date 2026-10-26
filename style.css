@@ -1255,4 +1255,10 @@ a {
   .fav-btn {
     transition: none;
   }
+
+  .nutrition-source a,
+  .recipes-source a {
+  color: var(--green);
+  text-decoration: underline;
+}
 }
